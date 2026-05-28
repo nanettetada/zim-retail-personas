@@ -30,6 +30,12 @@ INFORMAL_RETAILERS = ["Mbare Musika"]
 
 MOBILE_MONEY_OPTIONS = ["EcoCash", "OneMoney", "InnBucks", "Cash"]
 
+# A calm, professional palette — not the marketing-hero template look.
+INK = "#1f2933"
+MUTED = "#6b7280"
+ACCENT = "#6b4d8a"   # muted plum, used sparingly
+PLOT_TEMPLATE = "plotly_white"
+
 
 def zig(usd: float, dp: int = 0) -> str:
     """Format an amount as '$X (≈ZiG Y)'."""
@@ -57,9 +63,10 @@ def derive_payment_method(customer_id: int, monetary: float) -> str:
     return "Cash" if h < 45 else ("EcoCash" if h < 75 else ("OneMoney" if h < 90 else "InnBucks"))
 
 st.set_page_config(
-    page_title="Retail Customer Intelligence",
-    page_icon=":bust_in_silhouette:",
+    page_title="Retail customer personas",
+    page_icon="🛒",
     layout="wide",
+    initial_sidebar_state="collapsed",
 )
 
 st.markdown(
@@ -67,51 +74,18 @@ st.markdown(
     <style>
     #MainMenu, footer {visibility: hidden;}
 
-    .hero {
-        background: linear-gradient(135deg, #8E44AD 0%, #4A2065 100%);
-        padding: 36px 32px;
-        border-radius: 16px;
-        color: white;
-        margin: -10px 0 22px 0;
-        box-shadow: 0 12px 32px rgba(142, 68, 173, 0.25);
-    }
-    .hero h1 { margin: 0; font-size: 40px; font-weight: 800; letter-spacing: -0.8px; }
-    .hero p  { margin: 10px 0 0 0; font-size: 17px; opacity: 0.95; }
-
-    .stat {
-        background: white;
-        padding: 22px 24px;
-        border-radius: 14px;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-        border-top: 4px solid #8E44AD;
-        height: 100%;
-    }
-    .stat .label { font-size: 11px; color: #7F8C8D; text-transform: uppercase; letter-spacing: 1.2px; }
-    .stat .value { font-size: 30px; font-weight: 800; color: #2C3E50; margin: 6px 0 2px 0; }
-    .stat .sub   { font-size: 12px; color: #95A5A6; }
-
-    .insight {
-        background: linear-gradient(180deg, #FFFFFF 0%, #F8F4FB 100%);
-        border-left: 4px solid #8E44AD;
-        padding: 18px 22px;
-        border-radius: 10px;
-        margin: 12px 0;
-    }
-    .insight .head { font-size: 11px; color: #8E44AD; font-weight: 800; letter-spacing: 1.2px; }
-    .insight .body { font-size: 16px; color: #2C3E50; margin-top: 6px; line-height: 1.55; }
-
     .persona-card {
         background: white;
-        border-radius: 12px;
-        padding: 18px 22px;
+        border-radius: 10px;
+        padding: 16px 20px;
         margin: 8px 0;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        border-left: 6px solid var(--persona-color, #8E44AD);
+        border: 1px solid #e6e8eb;
+        border-left: 4px solid var(--persona-color, #6b4d8a);
     }
-    .persona-card h4 { margin: 0 0 6px 0; font-size: 18px; color: #2C3E50; }
-    .persona-card .meta { font-size: 13px; color: #7F8C8D; margin-bottom: 10px; }
-    .persona-card .action { font-size: 14px; color: #2C3E50; }
-    .persona-card .why { font-size: 13px; color: #8E44AD; margin-top: 6px; font-style: italic; }
+    .persona-card h4 { margin: 0 0 6px 0; font-size: 17px; color: #1f2933; }
+    .persona-card .meta { font-size: 13px; color: #6b7280; margin-bottom: 10px; }
+    .persona-card .action { font-size: 14px; color: #3a434d; }
+    .persona-card .why { font-size: 13px; color: #6b7280; margin-top: 6px; font-style: italic; }
 
     div[data-testid="stTabs"] button[data-baseweb="tab"] { font-weight: 600; }
     </style>
@@ -120,20 +94,32 @@ st.markdown(
 )
 
 
-def big_stat(label, value, sub=""):
-    return f'<div class="stat"><div class="label">{label}</div><div class="value">{value}</div><div class="sub">{sub}</div></div>'
+def note(text: str) -> None:
+    """A quiet analyst's note — sentence-case, no shouting, woven into the page."""
+    st.markdown(
+        f'<div style="border-left:3px solid #d7dbe0; background:#f7f8fa; '
+        f'padding:11px 16px; margin:4px 0 22px 0; color:#3a434d; '
+        f'font-size:15px; line-height:1.6;">{text}</div>',
+        unsafe_allow_html=True,
+    )
 
 
-def insight(head, body):
-    return f'<div class="insight"><div class="head">{head}</div><div class="body">{body}</div></div>'
+def style_fig(fig, height=340):
+    fig.update_layout(
+        template=PLOT_TEMPLATE,
+        height=height,
+        margin=dict(l=10, r=10, t=30, b=10),
+        font=dict(color=INK, size=13),
+    )
+    return fig
 
 
 PERSONA_COLOURS = {
-    "Loyal high-value": "#27AE60",
-    "Regulars": "#2E86C1",
-    "New customers": "#F39C12",
-    "One-time buyers": "#7F8C8D",
-    "At-risk / lapsed": "#E74C3C",
+    "Loyal high-value": "#4b9e7a",
+    "Regulars": "#5b8aa6",
+    "New customers": "#c98a3a",
+    "One-time buyers": "#8a929b",
+    "At-risk / lapsed": "#b4452f",
 }
 
 
@@ -191,9 +177,9 @@ with st.sidebar:
     k = st.slider("Number of clusters", 3, 8, 5,
                   help="Higher = finer granularity but harder to action.")
     st.markdown("---")
-    st.markdown(
-        ":bulb: **Try the Marketing Budget tab.** "
-        "Drag the budget slider to see expected ROI per persona."
+    st.caption(
+        "The budget planner on the last tab lets you split a marketing spend across "
+        "personas and see the expected return move."
     )
 
 
@@ -227,69 +213,57 @@ top10pct_n = max(int(total_customers * 0.10), 1)
 top10pct_revenue = float(rfm.nlargest(top10pct_n, "monetary")["monetary"].sum())
 top10pct_share = top10pct_revenue / total_revenue
 
-# Gini coefficient (concentration)
+# Gini coefficient (concentration). np.trapz was renamed to np.trapezoid in
+# NumPy 2.0; fall back to trapz on older versions.
+_trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
 sorted_m = np.sort(rfm["monetary"].to_numpy())
 cum_share = np.cumsum(sorted_m) / sorted_m.sum()
-gini = float(1 - 2 * np.trapz(cum_share, dx=1 / len(sorted_m)))
+gini = float(1 - 2 * _trapz(cum_share, dx=1 / len(sorted_m)))
 
 st.markdown(
-    """
-    <div class="hero">
-      <h1>Retail Customer Intelligence</h1>
-      <p>Who drives the revenue, who's about to walk away, and where to spend the next marketing dollar.</p>
+    f"""
+    <div style="margin:-6px 0 6px 0;">
+      <div style="font-size:13px; letter-spacing:.8px; color:{MUTED};
+                  text-transform:uppercase;">Zimbabwe retail &middot; customer personas</div>
+      <h1 style="margin:2px 0 4px 0; font-size:30px; font-weight:700; color:{INK};">
+        Who drives the revenue, and where the next dollar should go</h1>
+      <div style="font-size:16px; color:{MUTED};">
+        Customer segments built from recency, frequency and spend — read across
+        Zim retail channels and mobile-money rails, priced in USD and ZiG.</div>
     </div>
     """,
     unsafe_allow_html=True,
 )
+st.divider()
 
 c1, c2, c3, c4 = st.columns(4)
-c1.markdown(big_stat("Customers", f"{total_customers:,}"), unsafe_allow_html=True)
-c2.markdown(big_stat("Total revenue", f"${total_revenue:,.0f}",
-                      f"≈ZiG {total_revenue * USD_TO_ZIG:,.0f}"),
-            unsafe_allow_html=True)
-c3.markdown(
-    big_stat(
-        "Top 10% revenue share",
-        f"{top10pct_share*100:.0f}%",
-        f"{top10pct_n:,} customers · {zig(top10pct_revenue)}",
-    ),
-    unsafe_allow_html=True,
-)
-c4.markdown(
-    big_stat(
-        "Revenue concentration",
-        f"{gini:.2f} Gini",
-        "0.0 = even • 1.0 = one customer has it all",
-    ),
-    unsafe_allow_html=True,
-)
+c1.metric("Customers", f"{total_customers:,}")
+c2.metric("Total revenue", f"${total_revenue:,.0f}",
+          f"≈ZiG {total_revenue * USD_TO_ZIG:,.0f}", delta_color="off")
+c3.metric("Top 10% revenue share", f"{top10pct_share*100:.0f}%",
+          f"{top10pct_n:,} customers · {zig(top10pct_revenue)}", delta_color="off")
+c4.metric("Revenue concentration", f"{gini:.2f} Gini",
+          "0 = even · 1 = one customer has it all", delta_color="off")
 
-st.markdown(
-    insight(
-        "THE BIG NUMBER",
-        f"<b>{top10pct_n:,}</b> customers &mdash; the top 10% of the book &mdash; drive "
-        f"<b>{top10pct_share*100:.0f}%</b> of all revenue. Lose them and you've lost "
-        f"<b>${top10pct_revenue:,.0f}</b> (≈ZiG {top10pct_revenue * USD_TO_ZIG:,.0f}) "
-        "overnight. This is who marketing should defend first &mdash; whether they "
-        "shop at <b>Pick n Pay</b>, <b>OK Mart</b>, or hustle at <b>Mbare Musika</b>.",
-    ),
-    unsafe_allow_html=True,
+note(
+    f"The book is concentrated: the top 10% — about <b>{top10pct_n:,}</b> customers — "
+    f"bring in <b>{top10pct_share*100:.0f}%</b> of all revenue. Losing them would mean "
+    f"losing <b>${top10pct_revenue:,.0f}</b> (≈ZiG {top10pct_revenue * USD_TO_ZIG:,.0f}) "
+    f"more or less overnight, so they're the group to defend first — whether they shop "
+    f"at Pick n Pay and OK Mart, or trade at Mbare Musika."
 )
 
 # --------------------------------------------------------------------------- #
-tab_pareto, tab_personas, tab_zim, tab_explorer, tab_journey, tab_strategy = st.tabs([
-    ":chart_with_upwards_trend: The 80/20",
-    ":bust_in_silhouette: Personas",
-    ":zimbabwe: Zim Retail Context",
-    ":mag: Persona Explorer",
-    ":twisted_rightwards_arrows: Customer Journey",
-    ":moneybag: Marketing Budget",
+tab_who, tab_zim, tab_budget = st.tabs([
+    "Who they are",
+    "Zim retail context",
+    "Where to spend",
 ])
 
 # --------------------------------------------------------------------------- #
-with tab_pareto:
-    st.subheader("How concentrated is the revenue?")
-    st.caption("The classic Lorenz curve. The further the line bends below the diagonal, the more the top few customers carry the business.")
+with tab_who:
+    st.markdown("#### How concentrated is the revenue?")
+    st.caption("A Lorenz curve. The further the line bends below the diagonal, the more the top few customers carry the business.")
 
     rfm_sorted = rfm.sort_values("monetary", ascending=True).reset_index(drop=True)
     pct_customers = np.arange(1, len(rfm_sorted) + 1) / len(rfm_sorted)
@@ -299,51 +273,46 @@ with tab_pareto:
     fig.add_trace(go.Scatter(
         x=pct_customers, y=pct_revenue,
         mode="lines", fill="tozeroy", name="Lorenz",
-        line=dict(color="#8E44AD", width=3),
-        fillcolor="rgba(142, 68, 173, 0.18)",
+        line=dict(color=ACCENT, width=3),
+        fillcolor="rgba(107, 77, 138, 0.16)",
     ))
     fig.add_trace(go.Scatter(
         x=[0, 1], y=[0, 1], mode="lines", name="Perfect equality",
-        line=dict(color="#95A5A6", width=2, dash="dash"),
+        line=dict(color=MUTED, width=2, dash="dash"),
     ))
     p80 = int(0.80 * len(rfm_sorted))
     rev_at_p80 = float(pct_revenue.iloc[p80])
     fig.add_trace(go.Scatter(
         x=[0.80, 0.80], y=[0, rev_at_p80], mode="lines",
-        line=dict(color="#E74C3C", width=2, dash="dot"), showlegend=False,
+        line=dict(color="#b4452f", width=2, dash="dot"), showlegend=False,
     ))
     fig.add_annotation(
         x=0.80, y=rev_at_p80,
         text=f"80% of customers ⇒ {rev_at_p80*100:.0f}% of revenue",
         showarrow=True, arrowhead=2, ax=-100, ay=-40,
-        font=dict(color="#E74C3C", size=13),
+        font=dict(color="#b4452f", size=13),
     )
     fig.update_layout(
         xaxis_title="Cumulative share of customers (sorted by spend)",
         yaxis_title="Cumulative share of revenue",
         xaxis_tickformat=".0%", yaxis_tickformat=".0%",
-        height=480, margin=dict(l=20, r=20, t=20, b=40),
         legend=dict(orientation="h", y=-0.15),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(style_fig(fig, 480), use_container_width=True)
 
     bottom80_rev_share = rev_at_p80
     top20_rev_share = 1 - bottom80_rev_share
-    st.markdown(
-        insight(
-            "THE 80/20 RULE IN ACTION",
-            f"The bottom <b>80%</b> of customers only account for "
-            f"<b>{bottom80_rev_share*100:.0f}%</b> of revenue. The top <b>20%</b> "
-            f"carry the remaining <b>{top20_rev_share*100:.0f}%</b>. "
-            "Spending equally across all segments leaves money on the table — "
-            "the top quintile deserves disproportionate investment.",
-        ),
-        unsafe_allow_html=True,
+    note(
+        f"The familiar 80/20 pattern shows up clearly: the bottom <b>80%</b> of customers "
+        f"account for only <b>{bottom80_rev_share*100:.0f}%</b> of revenue, while the top "
+        f"<b>20%</b> carry the other <b>{top20_rev_share*100:.0f}%</b>. Splitting the "
+        f"marketing budget evenly across everyone leaves money on the table — the top "
+        f"quintile is worth a disproportionate share of the spend."
     )
 
-# --------------------------------------------------------------------------- #
-with tab_personas:
-    st.subheader("Five personas, ranked by revenue")
+    # --- Personas -----------------------------------------------------------
+    st.divider()
+    st.markdown("#### Five personas, ranked by revenue")
     st.caption("Treemap area = revenue contribution. The big rectangles are who you protect; the small ones are where you experiment.")
 
     rev_by_persona = (
@@ -369,8 +338,7 @@ with tab_personas:
         ),
         textfont=dict(size=18, color="white"),
     )
-    fig.update_layout(height=420, margin=dict(l=10, r=10, t=10, b=10))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(style_fig(fig, 420), use_container_width=True)
 
     st.markdown("##### Customers in RFM space")
     sample = rfm.sample(min(3000, len(rfm)), random_state=RNG)
@@ -381,9 +349,8 @@ with tab_personas:
         hover_data={"recency": True, "frequency": True, "monetary": ":$,.0f",
                      "pc1": False, "pc2": False},
     )
-    fig.update_layout(height=420, margin=dict(l=10, r=10, t=10, b=10),
-                       legend=dict(orientation="h", y=-0.18))
-    st.plotly_chart(fig, use_container_width=True)
+    fig.update_layout(legend=dict(orientation="h", y=-0.18))
+    st.plotly_chart(style_fig(fig, 420), use_container_width=True)
 
     st.markdown("##### Persona profile cards")
     actions = {
@@ -428,125 +395,11 @@ with tab_personas:
         )
 
 # --------------------------------------------------------------------------- #
-with tab_zim:
-    st.subheader("Zim retail context: formal vs informal")
-    st.caption(
-        "Zimbabwe retail isn't one market. Formal supermarket chains "
-        "(OK Mart, Pick n Pay, TM Pick n Pay, Spar, Bon Marche) serve middle- "
-        "and upper-income urban shoppers. Mbare Musika and other informal "
-        "traders move volume on lower-ticket items, often cash-only. The "
-        "personas behave differently on each side."
-    )
-
-    a, b = st.columns(2)
-    with a:
-        st.markdown("##### Channel mix")
-        ch = rfm["channel"].value_counts().reset_index()
-        ch.columns = ["channel", "customers"]
-        ch["channel_type"] = np.where(
-            ch["channel"].isin(INFORMAL_RETAILERS),
-            "Informal market", "Formal supermarket",
-        )
-        fig = px.bar(
-            ch.sort_values("customers"),
-            x="customers", y="channel", orientation="h",
-            color="channel_type",
-            color_discrete_map={
-                "Formal supermarket": "#8E44AD", "Informal market": "#F39C12",
-            },
-            text="customers",
-        )
-        fig.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10),
-                          legend=dict(orientation="h", y=-0.18),
-                          xaxis_title="Customers", yaxis_title="")
-        st.plotly_chart(fig, use_container_width=True)
-
-    with b:
-        st.markdown("##### Revenue by channel")
-        ch_rev = (
-            rfm.groupby("channel").agg(revenue=("monetary", "sum"),
-                                       customers=("customer_id", "count")).reset_index()
-        )
-        ch_rev["zig_revenue"] = ch_rev["revenue"] * USD_TO_ZIG
-        ch_rev["channel_type"] = np.where(
-            ch_rev["channel"].isin(INFORMAL_RETAILERS),
-            "Informal market", "Formal supermarket",
-        )
-        fig = px.bar(
-            ch_rev.sort_values("revenue"),
-            x="revenue", y="channel", orientation="h",
-            color="channel_type",
-            color_discrete_map={
-                "Formal supermarket": "#8E44AD", "Informal market": "#F39C12",
-            },
-            hover_data={"customers": True, "zig_revenue": ":,.0f"},
-            text=ch_rev["revenue"].map(lambda x: f"${x:,.0f}"),
-        )
-        fig.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10),
-                          legend=dict(orientation="h", y=-0.18),
-                          xaxis_title="Revenue (USD)", yaxis_title="")
-        st.plotly_chart(fig, use_container_width=True)
-
-    formal_rev = float(rfm.loc[rfm["channel_type"] == "Formal supermarket", "monetary"].sum())
-    informal_rev = float(rfm.loc[rfm["channel_type"] == "Informal market", "monetary"].sum())
-    st.markdown(
-        insight(
-            "WHERE THE MONEY ACTUALLY SITS",
-            f"Formal supermarkets carry <b>${formal_rev:,.0f}</b> "
-            f"(≈ZiG {formal_rev * USD_TO_ZIG:,.0f}); informal traders carry "
-            f"<b>${informal_rev:,.0f}</b> (≈ZiG {informal_rev * USD_TO_ZIG:,.0f}). "
-            "Formal customers tend to be higher-LTV but informal volume can "
-            "balance a thin-margin product mix &mdash; both need different campaigns.",
-        ),
-        unsafe_allow_html=True,
-    )
-
-    # -- Mobile money mix per persona --------------------------------------
-    st.markdown("##### Mobile money mix by persona")
-    st.caption("Which payment rail dominates which segment. EcoCash skews high-value; cash sits with one-time / informal.")
-    pay = (
-        rfm.groupby(["persona", "payment_method"])
-           .size().reset_index(name="customers")
-    )
-    totals = pay.groupby("persona")["customers"].transform("sum")
-    pay["share"] = pay["customers"] / totals
-    fig = px.bar(
-        pay, x="persona", y="share", color="payment_method", barmode="stack",
-        text=pay["share"].map(lambda x: f"{x*100:.0f}%"),
-        color_discrete_map={
-            "EcoCash":  "#27AE60", "OneMoney": "#2E86C1",
-            "InnBucks": "#F39C12", "Cash":     "#95A5A6",
-        },
-        labels={"share": "Share of persona", "persona": ""},
-    )
-    fig.update_layout(height=380, yaxis_tickformat=".0%",
-                      legend=dict(orientation="h", y=-0.18),
-                      margin=dict(l=10, r=10, t=10, b=10))
-    st.plotly_chart(fig, use_container_width=True)
-
-    # Dominant rail per persona
-    top_rail_per_persona = (
-        pay.sort_values("share", ascending=False)
-           .drop_duplicates("persona")[["persona", "payment_method", "share"]]
-    )
-    lines = " · ".join(
-        f"<b>{r.persona}</b> → {r.payment_method} ({r.share*100:.0f}%)"
-        for r in top_rail_per_persona.itertuples()
-    )
-    st.markdown(
-        insight(
-            "DOMINANT RAIL PER SEGMENT",
-            f"{lines}.<br>Match campaign incentives to the rail customers already use &mdash; "
-            "an EcoCash voucher will land harder than a bank-transfer rebate for "
-            "high-value shoppers, while small InnBucks top-ups reactivate cash payers.",
-        ),
-        unsafe_allow_html=True,
-    )
-
-# --------------------------------------------------------------------------- #
-with tab_explorer:
-    st.subheader("Interactive persona explorer")
-    st.caption("Pick a persona to see size, average spend in USD + ZiG, top channel, recommended marketing channel, and sample customer cards.")
+with tab_who:
+    # --- Persona explorer ---------------------------------------------------
+    st.divider()
+    st.markdown("#### Explore a single persona")
+    st.caption("Pick a persona to see its size, average spend in USD and ZiG, where they shop, how they pay, sample customers, and a campaign suggestion.")
 
     persona_choices = (
         rfm["persona"].value_counts().index.tolist()
@@ -569,18 +422,14 @@ with tab_explorer:
     rec_channel = persona_to_channel.get(chosen, "SMS + EcoCash voucher")
 
     a, b, c, d = st.columns(4)
-    a.markdown(big_stat("Persona size", f"{n_in:,}",
-                         f"{n_in/total_customers*100:.1f}% of book"),
-               unsafe_allow_html=True)
-    b.markdown(big_stat("Avg LTV", f"${avg_spend:,.0f}",
-                         f"≈ZiG {avg_spend * USD_TO_ZIG:,.0f}"),
-               unsafe_allow_html=True)
-    c.markdown(big_stat("Avg recency", f"{avg_recency:.0f} days",
-                         f"{avg_freq:.1f} orders on average"),
-               unsafe_allow_html=True)
-    d.markdown(big_stat("Recommended channel", rec_channel.split(' + ')[0],
-                         rec_channel),
-               unsafe_allow_html=True)
+    a.metric("Persona size", f"{n_in:,}",
+             f"{n_in/total_customers*100:.1f}% of book", delta_color="off")
+    b.metric("Avg LTV", f"${avg_spend:,.0f}",
+             f"≈ZiG {avg_spend * USD_TO_ZIG:,.0f}", delta_color="off")
+    c.metric("Avg recency", f"{avg_recency:.0f} days",
+             f"{avg_freq:.1f} orders on average", delta_color="off")
+    d.metric("Recommended channel", rec_channel.split(' + ')[0],
+             rec_channel, delta_color="off")
 
     # Channel breakdown for this persona
     a2, b2 = st.columns(2)
@@ -591,9 +440,8 @@ with tab_explorer:
         fig = px.pie(ch_sub, names="channel", values="customers", hole=0.45,
                      color="channel",
                      color_discrete_sequence=px.colors.qualitative.Set2)
-        fig.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10),
-                          legend=dict(orientation="v"))
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(legend=dict(orientation="v"))
+        st.plotly_chart(style_fig(fig, 320), use_container_width=True)
     with b2:
         st.markdown("##### How they pay")
         pay_sub = sub["payment_method"].value_counts().reset_index()
@@ -602,13 +450,12 @@ with tab_explorer:
             pay_sub, names="payment_method", values="customers", hole=0.45,
             color="payment_method",
             color_discrete_map={
-                "EcoCash":  "#27AE60", "OneMoney": "#2E86C1",
-                "InnBucks": "#F39C12", "Cash":     "#95A5A6",
+                "EcoCash":  "#4b9e7a", "OneMoney": "#5b8aa6",
+                "InnBucks": "#c98a3a", "Cash":     "#8a929b",
             },
         )
-        fig.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10),
-                          legend=dict(orientation="v"))
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(legend=dict(orientation="v"))
+        st.plotly_chart(style_fig(fig, 320), use_container_width=True)
 
     # Sample customer cards
     st.markdown("##### Sample customers")
@@ -660,27 +507,22 @@ with tab_explorer:
     offer_text, est_cost = offers[(budget_level, goal)]
     est_responders = max(int(n_in * (0.05 if budget_level == "Low" else 0.12 if budget_level == "Medium" else 0.22)), 1)
     expected_revenue = est_responders * avg_spend * (0.10 if goal == "Retention" else 0.07 if goal == "Upsell" else 0.05)
+    best_rail = sub['payment_method'].value_counts().idxmax()
 
-    st.markdown(
-        insight(
-            f"OFFER FOR {chosen.upper()}",
-            f"<b>Offer:</b> {offer_text}<br>"
-            f"<b>Channel:</b> {rec_channel}<br>"
-            f"<b>Est. cost / customer:</b> ${est_cost:.2f} "
-            f"(≈ZiG {est_cost * USD_TO_ZIG:,.0f})<br>"
-            f"<b>Est. responders:</b> {est_responders:,} of {n_in:,}<br>"
-            f"<b>Expected uplift:</b> ${expected_revenue:,.0f} "
-            f"(≈ZiG {expected_revenue * USD_TO_ZIG:,.0f})<br>"
-            f"<b>Best payment rail to pair with:</b> "
-            f"{sub['payment_method'].value_counts().idxmax()}",
-        ),
-        unsafe_allow_html=True,
+    note(
+        f"For the <b>{chosen}</b> segment at a {budget_level.lower()} budget aimed at "
+        f"{goal.lower()}, the offer I'd run is <b>{offer_text}</b>, reached through "
+        f"{rec_channel.lower()}. That costs about <b>${est_cost:.2f}</b> per customer "
+        f"(≈ZiG {est_cost * USD_TO_ZIG:,.0f}) and should reach roughly "
+        f"<b>{est_responders:,}</b> of the {n_in:,} in the segment, for an expected uplift "
+        f"of about <b>${expected_revenue:,.0f}</b> (≈ZiG {expected_revenue * USD_TO_ZIG:,.0f}). "
+        f"Pair it with <b>{best_rail}</b>, since that's the rail this segment already uses most."
     )
 
-# --------------------------------------------------------------------------- #
-with tab_journey:
-    st.subheader("Where customers come from, where they go")
-    st.caption("The latent customer journey: who's currently in each persona, and where they could plausibly move.")
+    # --- Customer journey ---------------------------------------------------
+    st.divider()
+    st.markdown("#### Where customers come from, and where they go")
+    st.caption("The latent customer journey: who's currently in each persona, and where they could plausibly move next.")
 
     personas = ["New customers", "One-time buyers", "Regulars", "Loyal high-value", "At-risk / lapsed"]
     counts = rfm["persona"].value_counts().to_dict()
@@ -701,7 +543,7 @@ with tab_journey:
         PERSONA_COLOURS["New customers"], PERSONA_COLOURS["One-time buyers"],
         PERSONA_COLOURS["Regulars"], PERSONA_COLOURS["Loyal high-value"],
         PERSONA_COLOURS["At-risk / lapsed"],
-        "#27AE60", "#2E86C1", "#16A085", "#7F8C8D",
+        "#4b9e7a", "#5b8aa6", "#3f8f72", "#8a929b",
     ]
     src, tgt, val, lcol = [], [], [], []
     for source, dests in transitions.items():
@@ -715,15 +557,14 @@ with tab_journey:
             src.append(node_idx[source])
             tgt.append(node_idx[dest])
             val.append(n)
-            lcol.append("rgba(231, 76, 60, 0.35)" if "Churned" in dest else "rgba(142, 68, 173, 0.25)")
+            lcol.append("rgba(180, 69, 47, 0.32)" if "Churned" in dest else "rgba(107, 77, 138, 0.20)")
 
     fig = go.Figure(go.Sankey(
         node=dict(label=nodes, color=node_colors, pad=22, thickness=18,
                   line=dict(color="white", width=0.5)),
         link=dict(source=src, target=tgt, value=val, color=lcol),
     ))
-    fig.update_layout(height=520, margin=dict(l=10, r=10, t=20, b=10), font_size=13)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(style_fig(fig, 520), use_container_width=True)
 
     st.caption(
         "Transition probabilities are illustrative defaults typical for retail/subscription. "
@@ -733,20 +574,123 @@ with tab_journey:
     one_time_lost_pct = transitions["One-time buyers"]["At-risk / lapsed"]
     n_one_time = counts.get("One-time buyers", 0)
     revenue_at_risk = float(rfm[rfm["persona"] == "One-time buyers"]["monetary"].sum()) * one_time_lost_pct
-    st.markdown(
-        insight(
-            "THE LEAKY BUCKET",
-            f"Without intervention, ~<b>{one_time_lost_pct*100:.0f}%</b> of "
-            f"<b>{n_one_time:,}</b> one-time buyers drift into the at-risk bucket — "
-            f"that's <b>${revenue_at_risk:,.0f}</b> of future revenue quietly leaving "
-            "the building. A second-purchase voucher campaign here pays back fast.",
-        ),
-        unsafe_allow_html=True,
+    note(
+        f"The leak to watch is among one-time buyers. Left alone, about "
+        f"<b>{one_time_lost_pct*100:.0f}%</b> of the <b>{n_one_time:,}</b> of them drift "
+        f"into the at-risk bucket — roughly <b>${revenue_at_risk:,.0f}</b> of future "
+        f"revenue quietly walking out the door. A simple second-purchase voucher aimed at "
+        f"this group tends to pay back quickly."
     )
 
 # --------------------------------------------------------------------------- #
-with tab_strategy:
-    st.subheader("How would you split a marketing budget?")
+with tab_zim:
+    st.markdown("#### Zim retail context: formal vs informal")
+    st.caption(
+        "Zimbabwe retail isn't one market. Formal supermarket chains "
+        "(OK Mart, Pick n Pay, TM Pick n Pay, Spar, Bon Marche) serve middle- "
+        "and upper-income urban shoppers. Mbare Musika and other informal "
+        "traders move volume on lower-ticket items, often cash-only. The "
+        "personas behave differently on each side."
+    )
+
+    a, b = st.columns(2)
+    with a:
+        st.markdown("##### Channel mix")
+        ch = rfm["channel"].value_counts().reset_index()
+        ch.columns = ["channel", "customers"]
+        ch["channel_type"] = np.where(
+            ch["channel"].isin(INFORMAL_RETAILERS),
+            "Informal market", "Formal supermarket",
+        )
+        fig = px.bar(
+            ch.sort_values("customers"),
+            x="customers", y="channel", orientation="h",
+            color="channel_type",
+            color_discrete_map={
+                "Formal supermarket": ACCENT, "Informal market": "#c98a3a",
+            },
+            text="customers",
+        )
+        fig.update_layout(legend=dict(orientation="h", y=-0.18),
+                          xaxis_title="Customers", yaxis_title="")
+        st.plotly_chart(style_fig(fig, 320), use_container_width=True)
+
+    with b:
+        st.markdown("##### Revenue by channel")
+        ch_rev = (
+            rfm.groupby("channel").agg(revenue=("monetary", "sum"),
+                                       customers=("customer_id", "count")).reset_index()
+        )
+        ch_rev["zig_revenue"] = ch_rev["revenue"] * USD_TO_ZIG
+        ch_rev["channel_type"] = np.where(
+            ch_rev["channel"].isin(INFORMAL_RETAILERS),
+            "Informal market", "Formal supermarket",
+        )
+        fig = px.bar(
+            ch_rev.sort_values("revenue"),
+            x="revenue", y="channel", orientation="h",
+            color="channel_type",
+            color_discrete_map={
+                "Formal supermarket": ACCENT, "Informal market": "#c98a3a",
+            },
+            hover_data={"customers": True, "zig_revenue": ":,.0f"},
+            text=ch_rev["revenue"].map(lambda x: f"${x:,.0f}"),
+        )
+        fig.update_layout(legend=dict(orientation="h", y=-0.18),
+                          xaxis_title="Revenue (USD)", yaxis_title="")
+        st.plotly_chart(style_fig(fig, 320), use_container_width=True)
+
+    formal_rev = float(rfm.loc[rfm["channel_type"] == "Formal supermarket", "monetary"].sum())
+    informal_rev = float(rfm.loc[rfm["channel_type"] == "Informal market", "monetary"].sum())
+    note(
+        f"Most of the money sits in formal supermarkets — they carry <b>${formal_rev:,.0f}</b> "
+        f"(≈ZiG {formal_rev * USD_TO_ZIG:,.0f}) against <b>${informal_rev:,.0f}</b> "
+        f"(≈ZiG {informal_rev * USD_TO_ZIG:,.0f}) from informal traders. Formal customers "
+        f"tend to be higher-LTV, but informal volume can balance out a thin-margin product "
+        f"mix, and the two sides respond to quite different campaigns."
+    )
+
+    # -- Mobile money mix per persona --------------------------------------
+    st.markdown("##### Mobile money mix by persona")
+    st.caption("Which payment rail dominates which segment. EcoCash skews high-value; cash sits with one-time / informal.")
+    pay = (
+        rfm.groupby(["persona", "payment_method"])
+           .size().reset_index(name="customers")
+    )
+    totals = pay.groupby("persona")["customers"].transform("sum")
+    pay["share"] = pay["customers"] / totals
+    fig = px.bar(
+        pay, x="persona", y="share", color="payment_method", barmode="stack",
+        text=pay["share"].map(lambda x: f"{x*100:.0f}%"),
+        color_discrete_map={
+            "EcoCash":  "#4b9e7a", "OneMoney": "#5b8aa6",
+            "InnBucks": "#c98a3a", "Cash":     "#8a929b",
+        },
+        labels={"share": "Share of persona", "persona": ""},
+    )
+    fig.update_layout(yaxis_tickformat=".0%",
+                      legend=dict(orientation="h", y=-0.18))
+    st.plotly_chart(style_fig(fig, 380), use_container_width=True)
+
+    # Dominant rail per persona
+    top_rail_per_persona = (
+        pay.sort_values("share", ascending=False)
+           .drop_duplicates("persona")[["persona", "payment_method", "share"]]
+    )
+    lines = "; ".join(
+        f"<b>{r.persona}</b> lean {r.payment_method} ({r.share*100:.0f}%)"
+        for r in top_rail_per_persona.itertuples()
+    )
+    note(
+        f"Each segment has a rail it already trusts — {lines}. The practical takeaway is to "
+        f"match the incentive to the rail: an EcoCash voucher lands harder than a "
+        f"bank-transfer rebate for high-value shoppers, while a small InnBucks top-up is "
+        f"what reactivates cash payers."
+    )
+
+# --------------------------------------------------------------------------- #
+with tab_budget:
+    st.markdown("#### How would you split a marketing budget?")
     st.caption(
         "Drag the budget slider. The model assumes industry-typical conversion rates per persona — "
         "tune the per-persona splits below if you have better numbers."
@@ -800,42 +744,29 @@ with tab_strategy:
     fig = px.bar(
         plan_long, x="persona", y="amount", color="kind",
         barmode="group",
-        color_discrete_map={"Spend": "#95A5A6", "Expected return": "#27AE60"},
+        color_discrete_map={"Spend": "#8a929b", "Expected return": "#4b9e7a"},
         text=plan_long["amount"].map(lambda x: f"${x:,.0f}"),
         labels={"amount": "USD", "persona": ""},
     )
-    fig.update_layout(height=420, margin=dict(l=10, r=10, t=10, b=20),
-                       legend=dict(orientation="h", y=-0.15))
-    st.plotly_chart(fig, use_container_width=True)
+    fig.update_layout(legend=dict(orientation="h", y=-0.15))
+    st.plotly_chart(style_fig(fig, 420), use_container_width=True)
 
     a, b, c = st.columns(3)
-    a.markdown(big_stat("Total spend", f"${budget:,.0f}",
-                         f"≈ZiG {budget * USD_TO_ZIG:,.0f}"),
-               unsafe_allow_html=True)
-    b.markdown(big_stat("Expected return", f"${total_return:,.0f}",
-                         f"≈ZiG {total_return * USD_TO_ZIG:,.0f}"),
-               unsafe_allow_html=True)
-    c.markdown(
-        big_stat(
-            "Blended ROI",
-            f"{blended_roi:.1f}×",
-            "Rule of thumb: above 3× is healthy.",
-        ),
-        unsafe_allow_html=True,
-    )
+    a.metric("Total spend", f"${budget:,.0f}",
+             f"≈ZiG {budget * USD_TO_ZIG:,.0f}", delta_color="off")
+    b.metric("Expected return", f"${total_return:,.0f}",
+             f"≈ZiG {total_return * USD_TO_ZIG:,.0f}", delta_color="off")
+    c.metric("Blended ROI", f"{blended_roi:.1f}×",
+             "above 3× is healthy", delta_color="off")
 
     best = plan.loc[plan["roi_x"].idxmax()]
     worst = plan.loc[plan["roi_x"].idxmin()]
-    st.markdown(
-        insight(
-            "WHERE THE NEXT DOLLAR SHOULD GO",
-            f"On these assumptions, <b>{best['persona']}</b> gives the highest ROI at "
-            f"<b>{best['roi_x']:.1f}×</b> — if you have spare budget, route it here. "
-            f"<b>{worst['persona']}</b> at <b>{worst['roi_x']:.1f}×</b> is the worst yield; "
-            "tighten or stop spending there unless you're optimising for reactivation "
-            "rate rather than revenue.",
-        ),
-        unsafe_allow_html=True,
+    note(
+        f"On these assumptions, <b>{best['persona']}</b> gives the best return at "
+        f"<b>{best['roi_x']:.1f}×</b>, so spare budget is best routed there. At the other "
+        f"end, <b>{worst['persona']}</b> only returns <b>{worst['roi_x']:.1f}×</b> — worth "
+        f"tightening or pausing unless you're deliberately chasing reactivation rate rather "
+        f"than revenue."
     )
 
     st.markdown("##### Detailed plan")

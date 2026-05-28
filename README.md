@@ -21,11 +21,16 @@
 
 ---
 
-## :dart: Why I built this
+<p align="center">
+  <img src="docs/preview.png" alt="Dashboard preview" width="900">
+</p>
+
+
+## Why I built this
 
 K-Means is one of the first algorithms you learn, but using it *well* on data that looks like a real retail dataset is its own skill. I built this around a **Zimbabwean retailer** — think TM Pick n Pay, OK Zimbabwe, or Edgars — where understanding the difference between a loyal Borrowdale shopper and a price-sensitive Kambuzuma shopper is the kind of insight a marketing team actually pays for.
 
-## :sparkles: At a glance
+## At a glance
 
 |  |  |
 |---|---|
@@ -35,7 +40,7 @@ K-Means is one of the first algorithms you learn, but using it *well* on data th
 | **Result** | 5 named personas; the top 12% of customers drive most of the revenue |
 | **Stack** | scikit-learn · pandas · Streamlit · Plotly |
 
-## :wrench: How I approached it
+## How I approached it
 
 1. **Generated a synthetic transactions dataset** for 5,000 customers with realistic RFM patterns (with hidden personas underneath so I could check if K-Means recovered them).
 2. **Engineered RFM features** — Recency (days since last order), Frequency (orders), Monetary (total spend).
@@ -44,7 +49,7 @@ K-Means is one of the first algorithms you learn, but using it *well* on data th
 5. **Fit K-Means** and projected the clusters into 2D with PCA to sanity-check.
 6. **Profiled each cluster** and gave it a name a non-technical stakeholder would understand.
 
-## :bar_chart: The personas
+## The personas
 
 | Cluster | Persona | Share | Avg recency | Avg frequency | Avg monetary |
 |---|---|---|---|---|---|
@@ -54,7 +59,7 @@ K-Means is one of the first algorithms you learn, but using it *well* on data th
 | 3 | At-risk / lapsed | 18% | 180 days | 4 orders | $620 |
 | 4 | New customers | 12% | 6 days | 1 order | $90 |
 
-## :computer: Run it yourself
+## Run it yourself
 
 ```bash
 pip install -r requirements.txt
@@ -62,7 +67,7 @@ jupyter notebook customer_segmentation.ipynb
 streamlit run dashboard.py
 ```
 
-## :tv: Interactive dashboard
+## Interactive dashboard
 
 Three tabs:
 - **Overview** — customers per persona, revenue share, PCA scatter of every customer.
@@ -71,7 +76,7 @@ Three tabs:
 
 Move the **k slider** in the sidebar and watch every chart redraw live.
 
-## :rocket: What I'd do next
+## What I'd do next
 
 - Add demographics and product-category features for a richer view.
 - A/B test win-back offer sizes on the "lapsed" segment.
