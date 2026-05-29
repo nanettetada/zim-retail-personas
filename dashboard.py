@@ -30,11 +30,24 @@ INFORMAL_RETAILERS = ["Mbare Musika"]
 
 MOBILE_MONEY_OPTIONS = ["EcoCash", "OneMoney", "InnBucks", "Cash"]
 
-# A calm, professional palette — not the marketing-hero template look.
-INK = "#1f2933"
-MUTED = "#6b7280"
-ACCENT = "#6b4d8a"   # muted plum, used sparingly
+# ---- Fintech palette -------------------------------------------------------
+BRAND = "#7C3AED"      # violet
+BRAND2 = "#A855F7"     # lighter purple, for the hero gradient
+INK = "#16161D"
+MUTED = "#5B6172"
+BODY = "#5B6172"
+ACCENT = BRAND
+GOOD = "#16B364"
+WARN = "#FB8C00"
+BLUE = "#4C6FFF"
+CORAL = "#FF5A5F"
+GREY = "#9AA0AE"
+SOFT = "#F5F6FA"
+LINE = "#EEF0F4"
+FONT = "Manrope"
 PLOT_TEMPLATE = "plotly_white"
+PAY_COLORS = {"EcoCash": GOOD, "OneMoney": BLUE, "InnBucks": WARN, "Cash": GREY}
+CHANNEL_COLORS = {"Formal supermarket": BRAND, "Informal market": WARN}
 
 
 def zig(usd: float, dp: int = 0) -> str:
@@ -70,56 +83,97 @@ st.set_page_config(
 )
 
 st.markdown(
-    """
+    f"""
     <style>
-    #MainMenu, footer {visibility: hidden;}
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+    html, body, [class*="css"], .stMarkdown, button, input, textarea {{
+        font-family: '{FONT}', system-ui, sans-serif;
+    }}
+    #MainMenu, header, footer {{ visibility: hidden; }}
+    .block-container {{ padding-top: 1.6rem; padding-bottom: 3rem; max-width: 1180px; }}
 
-    .persona-card {
-        background: white;
-        border-radius: 10px;
-        padding: 16px 20px;
-        margin: 8px 0;
-        border: 1px solid #e6e8eb;
-        border-left: 4px solid var(--persona-color, #6b4d8a);
-    }
-    .persona-card h4 { margin: 0 0 6px 0; font-size: 17px; color: #1f2933; }
-    .persona-card .meta { font-size: 13px; color: #6b7280; margin-bottom: 10px; }
-    .persona-card .action { font-size: 14px; color: #3a434d; }
-    .persona-card .why { font-size: 13px; color: #6b7280; margin-top: 6px; font-style: italic; }
+    .hero {{ background: linear-gradient(135deg, {BRAND} 0%, {BRAND2} 100%);
+        border-radius: 24px; padding: 26px 30px 22px 30px; color:#fff;
+        box-shadow: 0 18px 40px rgba(124,58,237,.26); }}
+    .hero .brand {{ font-size:14px; font-weight:700; opacity:.92; display:flex;
+        align-items:center; gap:8px; }}
+    .hero .dot {{ width:9px; height:9px; border-radius:50%; background:#fff; display:inline-block; }}
+    .hero .label {{ font-size:14px; opacity:.9; margin-top:18px; font-weight:600; }}
+    .hero .value {{ font-size:46px; font-weight:800; line-height:1.05; margin-top:2px; letter-spacing:-1px; }}
+    .hero .sub {{ font-size:15px; opacity:.95; margin-top:6px; max-width:660px; }}
+    .chips {{ display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }}
+    .chip {{ background: rgba(255,255,255,.18); border-radius:12px; padding:9px 14px; font-size:13px; }}
+    .chip b {{ font-size:17px; font-weight:800; display:block; }}
 
-    div[data-testid="stTabs"] button[data-baseweb="tab"] { font-weight: 600; }
+    .callout {{ border-radius:16px; padding:15px 18px; margin:6px 0 20px 0;
+        font-size:15px; line-height:1.6; color:#3a3f4d; }}
+    .sec {{ margin: 26px 0 4px 0; }}
+    .sec h3 {{ font-size:20px; font-weight:800; color:{INK}; margin:0; }}
+    .sec p {{ font-size:14px; color:{BODY}; margin:3px 0 0 0; }}
+
+    .persona-card {{ background:#fff; border-radius:16px; padding:16px 20px; margin:8px 0;
+        border:1px solid #F0F1F5; border-left:5px solid var(--persona-color, {BRAND});
+        box-shadow:0 1px 3px rgba(20,22,30,.05), 0 8px 22px rgba(20,22,30,.04); }}
+    .persona-card h4 {{ margin:0 0 6px 0; font-size:17px; font-weight:800; color:{INK}; }}
+    .persona-card .meta {{ font-size:13px; color:{BODY}; margin-bottom:10px; }}
+    .persona-card .action {{ font-size:14px; color:#3a3f4d; }}
+    .persona-card .why {{ font-size:13px; color:{GREY}; margin-top:6px; font-style:italic; }}
+
+    [data-testid="stMetric"] {{ background:#fff; border:1px solid #F0F1F5; border-radius:16px;
+        padding:14px 18px; box-shadow:0 1px 3px rgba(20,22,30,.05), 0 8px 22px rgba(20,22,30,.04); }}
+    [data-testid="stMetricValue"] {{ font-weight:800; color:{INK}; }}
+    [data-testid="stMetricLabel"] p {{ font-weight:600; color:{BODY}; }}
+
+    .stTabs [data-baseweb="tab-list"] {{ gap:6px; background:{SOFT}; padding:6px; border-radius:14px; }}
+    .stTabs [data-baseweb="tab"] {{ height:auto; padding:9px 20px; border-radius:10px;
+        font-weight:600; color:{BODY}; background:transparent; }}
+    .stTabs [aria-selected="true"] {{ background:#fff; color:{INK}; box-shadow:0 1px 3px rgba(0,0,0,.10); }}
+    .stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"] {{ display:none; }}
     </style>
     """,
     unsafe_allow_html=True,
 )
 
 
-def note(text: str) -> None:
-    """A quiet analyst's note — sentence-case, no shouting, woven into the page."""
+def note(text: str, tone: str = "neutral") -> None:
+    bg = {"brand": "#F3EEFD", "good": "#E9FBF3", "warn": "#FFF6E9", "neutral": SOFT}[tone]
+    bar = {"brand": BRAND, "good": GOOD, "warn": WARN, "neutral": GREY}[tone]
     st.markdown(
-        f'<div style="border-left:3px solid #d7dbe0; background:#f7f8fa; '
-        f'padding:11px 16px; margin:4px 0 22px 0; color:#3a434d; '
-        f'font-size:15px; line-height:1.6;">{text}</div>',
+        f'<div class="callout" style="background:{bg};border-left:4px solid {bar};">{text}</div>',
         unsafe_allow_html=True,
     )
 
 
-def style_fig(fig, height=340):
+def section(title: str, sub: str | None = None) -> None:
+    st.markdown(
+        f'<div class="sec"><h3>{title}</h3>{f"<p>{sub}</p>" if sub else ""}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def style_fig(fig, height=340, legend=True):
     fig.update_layout(
         template=PLOT_TEMPLATE,
         height=height,
-        margin=dict(l=10, r=10, t=30, b=10),
-        font=dict(color=INK, size=13),
+        margin=dict(l=8, r=8, t=34, b=8),
+        font=dict(family=FONT, color=INK, size=13),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        showlegend=legend,
     )
+    if fig.layout.title.text:
+        fig.update_layout(title_font=dict(family=FONT, size=15, color=INK))
+    fig.update_xaxes(gridcolor=LINE, zeroline=False)
+    fig.update_yaxes(gridcolor=LINE, zeroline=False)
     return fig
 
 
 PERSONA_COLOURS = {
-    "Loyal high-value": "#4b9e7a",
-    "Regulars": "#5b8aa6",
-    "New customers": "#c98a3a",
-    "One-time buyers": "#8a929b",
-    "At-risk / lapsed": "#b4452f",
+    "Loyal high-value": GOOD,
+    "Regulars": BLUE,
+    "New customers": WARN,
+    "One-time buyers": GREY,
+    "At-risk / lapsed": CORAL,
 }
 
 
@@ -222,35 +276,31 @@ gini = float(1 - 2 * _trapz(cum_share, dx=1 / len(sorted_m)))
 
 st.markdown(
     f"""
-    <div style="margin:-6px 0 6px 0;">
-      <div style="font-size:13px; letter-spacing:.8px; color:{MUTED};
-                  text-transform:uppercase;">Zimbabwe retail &middot; customer personas</div>
-      <h1 style="margin:2px 0 4px 0; font-size:30px; font-weight:700; color:{INK};">
-        Who drives the revenue, and where the next dollar should go</h1>
-      <div style="font-size:16px; color:{MUTED};">
-        Customer segments built from recency, frequency and spend — read across
-        Zim retail channels and mobile-money rails, priced in USD and ZiG.</div>
+    <div class="hero">
+      <div class="brand"><span class="dot"></span> Customer personas &middot; Zimbabwe retail</div>
+      <div class="label">Total revenue across the customer book</div>
+      <div class="value">${total_revenue:,.0f}</div>
+      <div class="sub">≈ ZiG {total_revenue * USD_TO_ZIG:,.0f} from {total_customers:,} customers.
+        It's a concentrated book — the top 10% bring in <b>{top10pct_share*100:.0f}%</b> of it.
+        Built from recency, frequency and spend, read across Zim channels and mobile-money rails.</div>
+      <div class="chips">
+        <span class="chip">customers <b>{total_customers:,}</b></span>
+        <span class="chip">top 10% share <b>{top10pct_share*100:.0f}%</b></span>
+        <span class="chip">concentration <b>{gini:.2f} Gini</b></span>
+      </div>
     </div>
     """,
     unsafe_allow_html=True,
 )
-st.divider()
-
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Customers", f"{total_customers:,}")
-c2.metric("Total revenue", f"${total_revenue:,.0f}",
-          f"≈ZiG {total_revenue * USD_TO_ZIG:,.0f}", delta_color="off")
-c3.metric("Top 10% revenue share", f"{top10pct_share*100:.0f}%",
-          f"{top10pct_n:,} customers · {zig(top10pct_revenue)}", delta_color="off")
-c4.metric("Revenue concentration", f"{gini:.2f} Gini",
-          "0 = even · 1 = one customer has it all", delta_color="off")
+st.write("")
 
 note(
     f"The book is concentrated: the top 10% — about <b>{top10pct_n:,}</b> customers — "
     f"bring in <b>{top10pct_share*100:.0f}%</b> of all revenue. Losing them would mean "
     f"losing <b>${top10pct_revenue:,.0f}</b> (≈ZiG {top10pct_revenue * USD_TO_ZIG:,.0f}) "
     f"more or less overnight, so they're the group to defend first — whether they shop "
-    f"at Pick n Pay and OK Mart, or trade at Mbare Musika."
+    f"at Pick n Pay and OK Mart, or trade at Mbare Musika.",
+    tone="brand",
 )
 
 # --------------------------------------------------------------------------- #
@@ -274,7 +324,7 @@ with tab_who:
         x=pct_customers, y=pct_revenue,
         mode="lines", fill="tozeroy", name="Lorenz",
         line=dict(color=ACCENT, width=3),
-        fillcolor="rgba(107, 77, 138, 0.16)",
+        fillcolor="rgba(124, 58, 237, 0.16)",
     ))
     fig.add_trace(go.Scatter(
         x=[0, 1], y=[0, 1], mode="lines", name="Perfect equality",
@@ -449,10 +499,7 @@ with tab_who:
         fig = px.pie(
             pay_sub, names="payment_method", values="customers", hole=0.45,
             color="payment_method",
-            color_discrete_map={
-                "EcoCash":  "#4b9e7a", "OneMoney": "#5b8aa6",
-                "InnBucks": "#c98a3a", "Cash":     "#8a929b",
-            },
+            color_discrete_map=PAY_COLORS,
         )
         fig.update_layout(legend=dict(orientation="v"))
         st.plotly_chart(style_fig(fig, 320), use_container_width=True)
@@ -543,7 +590,7 @@ with tab_who:
         PERSONA_COLOURS["New customers"], PERSONA_COLOURS["One-time buyers"],
         PERSONA_COLOURS["Regulars"], PERSONA_COLOURS["Loyal high-value"],
         PERSONA_COLOURS["At-risk / lapsed"],
-        "#4b9e7a", "#5b8aa6", "#3f8f72", "#8a929b",
+        GOOD, BLUE, GOOD, GREY,
     ]
     src, tgt, val, lcol = [], [], [], []
     for source, dests in transitions.items():
@@ -557,7 +604,7 @@ with tab_who:
             src.append(node_idx[source])
             tgt.append(node_idx[dest])
             val.append(n)
-            lcol.append("rgba(180, 69, 47, 0.32)" if "Churned" in dest else "rgba(107, 77, 138, 0.20)")
+            lcol.append("rgba(255, 90, 95, 0.34)" if "Churned" in dest else "rgba(124, 58, 237, 0.20)")
 
     fig = go.Figure(go.Sankey(
         node=dict(label=nodes, color=node_colors, pad=22, thickness=18,
@@ -606,9 +653,7 @@ with tab_zim:
             ch.sort_values("customers"),
             x="customers", y="channel", orientation="h",
             color="channel_type",
-            color_discrete_map={
-                "Formal supermarket": ACCENT, "Informal market": "#c98a3a",
-            },
+            color_discrete_map=CHANNEL_COLORS,
             text="customers",
         )
         fig.update_layout(legend=dict(orientation="h", y=-0.18),
@@ -630,9 +675,7 @@ with tab_zim:
             ch_rev.sort_values("revenue"),
             x="revenue", y="channel", orientation="h",
             color="channel_type",
-            color_discrete_map={
-                "Formal supermarket": ACCENT, "Informal market": "#c98a3a",
-            },
+            color_discrete_map=CHANNEL_COLORS,
             hover_data={"customers": True, "zig_revenue": ":,.0f"},
             text=ch_rev["revenue"].map(lambda x: f"${x:,.0f}"),
         )
@@ -662,10 +705,7 @@ with tab_zim:
     fig = px.bar(
         pay, x="persona", y="share", color="payment_method", barmode="stack",
         text=pay["share"].map(lambda x: f"{x*100:.0f}%"),
-        color_discrete_map={
-            "EcoCash":  "#4b9e7a", "OneMoney": "#5b8aa6",
-            "InnBucks": "#c98a3a", "Cash":     "#8a929b",
-        },
+        color_discrete_map=PAY_COLORS,
         labels={"share": "Share of persona", "persona": ""},
     )
     fig.update_layout(yaxis_tickformat=".0%",
@@ -744,7 +784,7 @@ with tab_budget:
     fig = px.bar(
         plan_long, x="persona", y="amount", color="kind",
         barmode="group",
-        color_discrete_map={"Spend": "#8a929b", "Expected return": "#4b9e7a"},
+        color_discrete_map={"Spend": GREY, "Expected return": GOOD},
         text=plan_long["amount"].map(lambda x: f"${x:,.0f}"),
         labels={"amount": "USD", "persona": ""},
     )
